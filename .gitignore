@@ -56,3 +56,9 @@ desktop.ini
 # Logs
 # =====================================================================
 *.log
+
+# Node / TypeScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
