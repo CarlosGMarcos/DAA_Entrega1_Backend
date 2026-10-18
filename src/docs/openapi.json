@@ -1,0 +1,75 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Garden Monitoring API",
+    "version": "1.0.0",
+    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error."
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Current server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "System",
+      "description": "Service status"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Check that the API is running",
+        "responses": {
+          "200": {
+            "description": "The API is up",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "service": { "type": "string", "example": "garden-monitoring-api" },
+              "uptimeSeconds": { "type": "number", "example": 42.17 }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["status", "error", "message"],
+        "properties": {
+          "status": { "type": "string", "enum": ["fail", "error"], "example": "fail" },
+          "error": { "type": "string", "example": "ValidationError" },
+          "message": { "type": "string", "example": "The request data is not valid." },
+          "details": {
+            "type": "array",
+            "description": "Only present on validation errors: one entry per invalid field.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": { "type": "string", "example": "maxThreshold" },
+                "message": { "type": "string", "example": "Expected number, received string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
