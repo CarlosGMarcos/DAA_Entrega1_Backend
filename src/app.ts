@@ -9,6 +9,7 @@ import express, { Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
 import openapiSpec from "./docs/openapi.json" with { type: "json" };
 import { notFoundHandler, globalErrorHandler } from "./middlewares/error.middleware.js";
+import sensorsRoutes from "./routes/sensors.routes.js";
 
 export const app = express();
 
@@ -20,6 +21,8 @@ app.get("/api/health", (_req: Request, res: Response) => {
     data: { service: "garden-monitoring-api", uptimeSeconds: process.uptime() },
   });
 });
+
+app.use("/api/sensors", sensorsRoutes);
 
 // Interactive API documentation (Swagger UI).
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
