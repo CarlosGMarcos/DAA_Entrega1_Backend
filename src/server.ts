@@ -12,6 +12,7 @@ const server = app.listen(env.PORT, () => {
   console.log(`[server] API docs at http://localhost:${env.PORT}/api/docs`);
 });
 
+// Handle errors that occur while starting the server (e.g. port already in use).
 server.on("error", (error: NodeJS.ErrnoException) => {
   if (error.code === "EADDRINUSE") {
     console.error(`[server] Port ${env.PORT} is already in use. Change PORT in your .env file.`);
