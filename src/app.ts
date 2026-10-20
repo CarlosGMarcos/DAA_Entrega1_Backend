@@ -27,3 +27,10 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 // Always last, in this order: unknown routes first, then every error.
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
+
+// implementing a Database connection does not change the app iself,
+// app doesn't need to know about the database, it just needs to be
+// able to handle requests and responses.
+// The database connection is handled in server.ts, which is responsible
+// for starting the server and connecting to the database before the
+// app starts listening for requests.
