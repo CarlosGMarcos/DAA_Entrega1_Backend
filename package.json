@@ -1,13 +1,15 @@
 {
   "name": "daa_entrega1_backend",
   "version": "1.0.0",
-  "description": "En este repositorio voy a trabajar la primera entrega de la asignatura de Desarrollo de Aplicaciones Avanzadas.",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
+  "description": "REST API to monitor a garden: sensors, readings and users with role-based access. Built with Express 5, TypeScript and MongoDB.",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -16,7 +18,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/CarlosGMarcos/DAA_Entrega1_Backend/issues"
   },
