@@ -13,6 +13,7 @@ import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { AppError } from "../errors/app.error.js";
 import { env } from "../config/env.js";
+import mongoose from "mongoose";
 
 // Reached only when no router matched the request.
 export const notFoundHandler = (req: Request, res: Response) => {
@@ -33,6 +34,19 @@ export const globalErrorHandler = (err: Error, _req: Request, res: Response, _ne
       details: err.issues.map((issue) => ({
         field: issue.path.join("."),
         message: issue.message,
+      })),
+    });
+  }
+  // 1.2 (specific case) A document rejected by a Mongoose model on save
+  //      (e.g. a PATCH whose minThreshold is not lower than the maxThreshold already stored).
+  if (err instanceof mongoose.Error.ValidationError) {
+    return res.status(400).json({
+      status: "fail",
+      error: "ValidationError",
+      message: "The request data is not valid.",
+      details: Object.values(err.errors).map((e) => ({
+        field: e.path,
+        message: e.message,
       })),
     });
   }
