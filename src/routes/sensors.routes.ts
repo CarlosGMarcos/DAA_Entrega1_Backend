@@ -20,6 +20,7 @@ router.use(authenticate);
 router.get("/", sensorsController.listSensors);
 router.get("/:id", validateObjectId(), sensorsController.getSensor);
 
+// To see if it works, erase authorize("admin") below and run the tests. They will fail with 403, but the code will still compile and run.
 router.post("/", authorize("admin"), validateBody(createSensorSchema), sensorsController.createSensor);
 router.patch("/:id", authorize("admin"), validateObjectId(), validateBody(updateSensorSchema), sensorsController.updateSensor);
 router.delete("/:id", authorize("admin"), validateObjectId(), sensorsController.deleteSensor);
