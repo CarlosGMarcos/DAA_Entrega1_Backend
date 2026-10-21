@@ -3,19 +3,13 @@
   "info": {
     "title": "Garden Monitoring API",
     "version": "1.0.0",
-    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error."
+    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error.\n\n**Authentication:** call `POST /auth/login` (or `/auth/register`) to get a JWT, press **Authorize** and paste it. Every sensor route needs it; creating, updating and deleting sensors also needs the `admin` role."
   },
-  "servers": [
-    {
-      "url": "/api",
-      "description": "Current server"
-    }
-  ],
+  "servers": [{ "url": "/api", "description": "Current server" }],
+  "security": [{ "bearerAuth": [] }],
   "tags": [
-    {
-      "name": "System",
-      "description": "Service status"
-    },
+    { "name": "System", "description": "Service status" },
+    { "name": "Auth", "description": "Sign up and log in to get an access token (JWT). Public routes." },
     {
       "name": "Sensors",
       "description": "Garden sensors. Each sensor measures one magnitude and has its own normal range; the unit is set by the server from the magnitude."
@@ -26,15 +20,52 @@
       "get": {
         "tags": ["System"],
         "summary": "Check that the API is running",
+        "security": [],
         "responses": {
           "200": {
             "description": "The API is up",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HealthResponse" }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } } }
           }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Create a user account",
+        "description": "Always creates a regular `user`: a `role` sent in the body is ignored. Returns a token so the client is logged in straight away.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RegisterRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "$ref": "#/components/responses/EmailAlreadyRegistered" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Log in and get a token",
+        "description": "The same 401 is returned whether the email does not exist or the password is wrong, so the API never reveals which emails are registered.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Logged in",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/InvalidCredentials" }
         }
       }
     },
@@ -42,40 +73,31 @@
       "get": {
         "tags": ["Sensors"],
         "summary": "List all sensors",
-        "description": "Returns every sensor, newest first.",
+        "description": "Any authenticated user. Returns every sensor, newest first.",
         "responses": {
           "200": {
             "description": "The list of sensors",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SensorListResponse" }
-              }
-            }
-          }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SensorListResponse" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       },
       "post": {
         "tags": ["Sensors"],
         "summary": "Create a sensor",
-        "description": "The unit is derived from the magnitude (% for soil_humidity, °C for temperature, lx for light); a unit sent by the client is ignored. minThreshold, when present, must be lower than maxThreshold.",
+        "description": "Admin only. The unit is derived from the magnitude (% for soil_humidity, °C for temperature, lx for light); a unit sent by the client is ignored. minThreshold, when present, must be lower than maxThreshold.",
         "requestBody": {
           "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateSensorRequest" }
-            }
-          }
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateSensorRequest" } } }
         },
         "responses": {
           "201": {
             "description": "Sensor created",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SensorResponse" }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SensorResponse" } } }
           },
-          "400": { "$ref": "#/components/responses/ValidationError" }
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
         }
       }
     },
@@ -84,56 +106,59 @@
       "get": {
         "tags": ["Sensors"],
         "summary": "Get a sensor by id",
+        "description": "Any authenticated user.",
         "responses": {
           "200": {
             "description": "The sensor",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SensorResponse" }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SensorResponse" } } }
           },
           "400": { "$ref": "#/components/responses/InvalidObjectId" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/SensorNotFound" }
         }
       },
       "patch": {
         "tags": ["Sensors"],
         "summary": "Update a sensor partially",
-        "description": "Send only the fields to change (at least one). The magnitude cannot be changed. The threshold range is checked against the values already stored, so sending only minThreshold can still fail.",
+        "description": "Admin only. Send only the fields to change (at least one). The magnitude cannot be changed. The threshold range is checked against the values already stored, so sending only minThreshold can still fail.",
         "requestBody": {
           "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateSensorRequest" }
-            }
-          }
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateSensorRequest" } } }
         },
         "responses": {
           "200": {
             "description": "Sensor updated",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SensorResponse" }
-              }
-            }
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SensorResponse" } } }
           },
           "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/SensorNotFound" }
         }
       },
       "delete": {
         "tags": ["Sensors"],
         "summary": "Delete a sensor",
+        "description": "Admin only.",
         "responses": {
           "204": { "description": "Sensor deleted (no body)" },
           "400": { "$ref": "#/components/responses/InvalidObjectId" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/SensorNotFound" }
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Paste the token returned by /auth/login or /auth/register (without the word Bearer)."
+      }
+    },
     "parameters": {
       "SensorId": {
         "name": "id",
@@ -176,10 +201,50 @@
         "content": {
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "status": "fail", "error": "NotFound", "message": "Sensor not found: 6716a2f4c1d2e3f4a5b6c7d8" }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing, invalid or expired token",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
             "example": {
               "status": "fail",
-              "error": "NotFound",
-              "message": "Sensor not found: 6716a2f4c1d2e3f4a5b6c7d8"
+              "error": "Unauthorized",
+              "message": "Authentication required: send the header 'Authorization: Bearer <token>'"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Valid token, but the role is not allowed (admin only)",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "status": "fail", "error": "Forbidden", "message": "Your role does not allow this action" }
+          }
+        }
+      },
+      "InvalidCredentials": {
+        "description": "Wrong email or password",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "status": "fail", "error": "InvalidCredentials", "message": "Invalid email or password" }
+          }
+        }
+      },
+      "EmailAlreadyRegistered": {
+        "description": "The email is already registered",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "status": "fail",
+              "error": "EmailAlreadyRegistered",
+              "message": "This email is already registered"
             }
           }
         }
@@ -199,11 +264,49 @@
           }
         }
       },
-      "Magnitude": {
-        "type": "string",
-        "enum": ["soil_humidity", "temperature", "light"],
-        "example": "temperature"
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "password", "name"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "example": "ana@garden.com" },
+          "password": { "type": "string", "minLength": 8, "maxLength": 72, "example": "secret123" },
+          "name": { "type": "string", "minLength": 2, "maxLength": 100, "example": "Ana" }
+        }
       },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "example": "ana@garden.com" },
+          "password": { "type": "string", "example": "secret123" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "description": "A user as returned by the API (the password hash is never included).",
+        "properties": {
+          "_id": { "type": "string", "example": "6716b0a1c1d2e3f4a5b6c7d9" },
+          "email": { "type": "string", "example": "ana@garden.com" },
+          "name": { "type": "string", "example": "Ana" },
+          "role": { "type": "string", "enum": ["user", "admin"], "example": "user" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+              "user": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        }
+      },
+      "Magnitude": { "type": "string", "enum": ["soil_humidity", "temperature", "light"], "example": "temperature" },
       "Sensor": {
         "type": "object",
         "properties": {
@@ -252,10 +355,7 @@
         "type": "object",
         "properties": {
           "status": { "type": "string", "example": "success" },
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Sensor" }
-          }
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Sensor" } }
         }
       },
       "ErrorResponse": {
