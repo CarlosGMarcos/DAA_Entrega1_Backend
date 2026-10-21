@@ -19,7 +19,7 @@
     "/health": {
       "get": {
         "tags": ["System"],
-        "summary": "Check that the API is running",
+        "summary": "Check that the API is running (Public)",
         "security": [],
         "responses": {
           "200": {
@@ -32,7 +32,7 @@
     "/auth/register": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Create a user account",
+        "summary": "Create a user account (Public)",
         "description": "Always creates a regular `user`: a `role` sent in the body is ignored. Returns a token so the client is logged in straight away.",
         "security": [],
         "requestBody": {
@@ -52,7 +52,7 @@
     "/auth/login": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Log in and get a token",
+        "summary": "Log in and get a token (Public)",
         "description": "The same 401 is returned whether the email does not exist or the password is wrong, so the API never reveals which emails are registered.",
         "security": [],
         "requestBody": {
@@ -72,7 +72,7 @@
     "/sensors": {
       "get": {
         "tags": ["Sensors"],
-        "summary": "List all sensors",
+        "summary": "List all sensors (Any authenticated user)",
         "description": "Any authenticated user. Returns every sensor, newest first.",
         "responses": {
           "200": {
@@ -84,7 +84,7 @@
       },
       "post": {
         "tags": ["Sensors"],
-        "summary": "Create a sensor",
+        "summary": "Create a sensor (Admin only)",
         "description": "Admin only. The unit is derived from the magnitude (% for soil_humidity, °C for temperature, lx for light); a unit sent by the client is ignored. minThreshold, when present, must be lower than maxThreshold.",
         "requestBody": {
           "required": true,
@@ -105,7 +105,7 @@
       "parameters": [{ "$ref": "#/components/parameters/SensorId" }],
       "get": {
         "tags": ["Sensors"],
-        "summary": "Get a sensor by id",
+        "summary": "Get a sensor by id (Any authenticated user)",
         "description": "Any authenticated user.",
         "responses": {
           "200": {
@@ -119,7 +119,7 @@
       },
       "patch": {
         "tags": ["Sensors"],
-        "summary": "Update a sensor partially",
+        "summary": "Update a sensor partially (Admin only)",
         "description": "Admin only. Send only the fields to change (at least one). The magnitude cannot be changed. The threshold range is checked against the values already stored, so sending only minThreshold can still fail.",
         "requestBody": {
           "required": true,
@@ -138,7 +138,7 @@
       },
       "delete": {
         "tags": ["Sensors"],
-        "summary": "Delete a sensor",
+        "summary": "Delete a sensor (Admin only)",
         "description": "Admin only.",
         "responses": {
           "204": { "description": "Sensor deleted (no body)" },
