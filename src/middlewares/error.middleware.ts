@@ -50,6 +50,17 @@ export const globalErrorHandler = (err: Error, _req: Request, res: Response, _ne
       })),
     });
   }
+  // 1.3 A unique index was violated (e.g. two sign-ups with the same email at
+  //     the same instant): MongoDB rejects the second one with code 11000.
+  if ((err as { code?: number }).code === 11000) {
+    const keyValue = (err as { keyValue?: Record<string, unknown> }).keyValue ?? {};
+    const field = Object.keys(keyValue)[0] ?? "value";
+    return res.status(409).json({
+      status: "fail",
+      error: "DuplicateKey",
+      message: `A resource with this ${field} already exists.`,
+    });
+  }
 
   // 2. Malformed JSON body: express.json() throws a SyntaxError. It is a client
   //    mistake, so it must not fall through to the generic 500 below.
