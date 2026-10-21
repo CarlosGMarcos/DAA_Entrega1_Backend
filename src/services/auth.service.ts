@@ -41,6 +41,7 @@ export class AuthService {
     return this.buildAuthResult(user);
   }
 
+  // login and register return the same shape: a JWT and the user object (without the hash).
   private buildAuthResult(user: HydratedDocument<IUser>) {
     const token = tokenService.sign({ userId: user.id, email: user.email, role: user.role });
     return { token, user };
