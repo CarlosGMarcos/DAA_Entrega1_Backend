@@ -20,6 +20,13 @@ export class ConflictError extends AppError {
   }
 }
 
+export class UnitMismatchError extends AppError {
+  constructor(sent: string, expected: string) {
+    super(`Unit '${sent}' does not match the sensor unit '${expected}'`, 400);
+    this.name = "UnitMismatch";
+  }
+}
+
 // the service doesn't know anything about the HTTP
 // But it can raise an specific errot type so the global error handler (error.middleware.ts)
 // can return the correct status code and error name in the response.
