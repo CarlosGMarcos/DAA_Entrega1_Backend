@@ -62,3 +62,6 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
+
+# Local test notes (credentials and tokens)
+infoTests.txt
