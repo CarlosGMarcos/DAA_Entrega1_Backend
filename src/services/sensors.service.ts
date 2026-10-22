@@ -5,7 +5,8 @@
  * ========================================================================== */
 
 import { Sensor } from "../models/sensor.model.js";
-import { NotFoundError } from "../errors/http.errors.js";
+import { Reading } from "../models/reading.model.js";
+import { ConflictError, NotFoundError } from "../errors/http.errors.js";
 import type { CreateSensorInput, UpdateSensorInput } from "../schemas/sensor.schema.js";
 
 export class SensorsService {
@@ -36,7 +37,10 @@ export class SensorsService {
 
   async remove(id: string) {
     const sensor = await this.getById(id);
-    // Phase 3: throw a ConflictError here if the sensor already has readings.
+    // Readings point to their sensor: deleting it would leave them orphaned.
+    if (await Reading.exists({ sensor: sensor._id })) {
+      throw new ConflictError(`Sensor ${id} has readings and cannot be deleted; deactivate it instead`);
+    }
     await sensor.deleteOne();
   }
 }

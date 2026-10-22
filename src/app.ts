@@ -11,6 +11,7 @@ import openapiSpec from "./docs/openapi.json" with { type: "json" };
 import { notFoundHandler, globalErrorHandler } from "./middlewares/error.middleware.js";
 import sensorsRoutes from "./routes/sensors.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import readingsRoutes from "./routes/readings.routes.js";
 
 export const app = express();
 
@@ -26,6 +27,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 
 app.use("/api/sensors", sensorsRoutes);
+app.use("/api/readings", readingsRoutes);
 
 // Interactive API documentation (Swagger UI).
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
