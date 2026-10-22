@@ -3,7 +3,7 @@
   "info": {
     "title": "Garden Monitoring API",
     "version": "1.0.0",
-    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error.\n\n**Authentication:** call `POST /auth/login` (or `/auth/register`) to get a JWT, press **Authorize** and paste it. Every sensor route needs it; creating, updating and deleting sensors also needs the `admin` role."
+    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error.\n\n**Authentication:** call `POST /auth/login` (or `/auth/register`) to get a JWT, press **Authorize** and paste it. Every sensor route needs it; creating, updating and deleting sensors also needs the `admin` role. Readings can be registered and read by any authenticated user."
   },
   "servers": [{ "url": "/api", "description": "Current server" }],
   "security": [{ "bearerAuth": [] }],
@@ -13,6 +13,10 @@
     {
       "name": "Sensors",
       "description": "Garden sensors. Each sensor measures one magnitude and has its own normal range; the unit is set by the server from the magnitude."
+    },
+    {
+      "name": "Readings",
+      "description": "Measurements sent by the sensors. The server decides whether each reading is anomalous when it is saved. Readings cannot be modified or deleted."
     }
   ],
   "paths": {
@@ -139,13 +143,52 @@
       "delete": {
         "tags": ["Sensors"],
         "summary": "Delete a sensor (Admin only)",
-        "description": "Admin only.",
+        "description": "Admin only. A sensor that already has readings cannot be deleted (409): deactivate it instead.",
         "responses": {
           "204": { "description": "Sensor deleted (no body)" },
           "400": { "$ref": "#/components/responses/InvalidObjectId" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/SensorNotFound" }
+          "404": { "$ref": "#/components/responses/SensorNotFound" },
+          "409": { "$ref": "#/components/responses/SensorHasReadings" }
+        }
+      }
+    },
+    "/readings": {
+      "post": {
+        "tags": ["Readings"],
+        "summary": "Register a reading (Any authenticated user)",
+        "description": "Any authenticated user. The sensor must exist and be active. The unit is optional: if sent, it must match the sensor unit (the server does not convert units). isAnomalous is always computed by the server from the sensor thresholds at the moment of saving (the range is inclusive); a value sent by the client is ignored. timestamp is optional (defaults to now) and cannot be in the future.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateReadingRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Reading registered",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReadingResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/ReadingBadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/SensorNotFound" },
+          "409": { "$ref": "#/components/responses/SensorInactive" }
+        }
+      }
+    },
+    "/readings/{id}": {
+      "parameters": [{ "$ref": "#/components/parameters/ReadingId" }],
+      "get": {
+        "tags": ["Readings"],
+        "summary": "Get a reading by id (Any authenticated user)",
+        "description": "Any authenticated user. The sensor is returned populated with its name, magnitude, location and unit.",
+        "responses": {
+          "200": {
+            "description": "The reading, with its sensor",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReadingDetailResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/InvalidObjectId" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/ReadingNotFound" }
         }
       }
     }
@@ -166,6 +209,13 @@
         "required": true,
         "description": "MongoDB id of the sensor (24 hexadecimal characters)",
         "schema": { "type": "string", "example": "6716a2f4c1d2e3f4a5b6c7d8" }
+      },
+      "ReadingId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "MongoDB id of the reading (24 hexadecimal characters)",
+        "schema": { "type": "string", "example": "6716c3b2c1d2e3f4a5b6c7e0" }
       }
     },
     "responses": {
@@ -245,6 +295,72 @@
               "status": "fail",
               "error": "EmailAlreadyRegistered",
               "message": "This email is already registered"
+            }
+          }
+        }
+      },
+      "ReadingBadRequest": {
+        "description": "Invalid data, or a unit that does not match the sensor",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "examples": {
+              "validation": {
+                "summary": "Invalid data",
+                "value": {
+                  "status": "fail",
+                  "error": "ValidationError",
+                  "message": "The request data is not valid.",
+                  "details": [{ "field": "timestamp", "message": "timestamp cannot be in the future" }]
+                }
+              },
+              "unitMismatch": {
+                "summary": "Unit does not match the sensor",
+                "value": {
+                  "status": "fail",
+                  "error": "UnitMismatch",
+                  "message": "Unit '°F' does not match the sensor unit '°C'"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SensorInactive": {
+        "description": "The sensor is inactive and does not accept readings",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "status": "fail",
+              "error": "Conflict",
+              "message": "Sensor 6716a2f4c1d2e3f4a5b6c7d8 is inactive and does not accept readings"
+            }
+          }
+        }
+      },
+      "SensorHasReadings": {
+        "description": "The sensor has readings and cannot be deleted",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "status": "fail",
+              "error": "Conflict",
+              "message": "Sensor 6716a2f4c1d2e3f4a5b6c7d8 has readings and cannot be deleted; deactivate it instead"
+            }
+          }
+        }
+      },
+      "ReadingNotFound": {
+        "description": "No reading exists with that id",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "status": "fail",
+              "error": "NotFound",
+              "message": "Reading not found: 6716c3b2c1d2e3f4a5b6c7e0"
             }
           }
         }
@@ -356,6 +472,83 @@
         "properties": {
           "status": { "type": "string", "example": "success" },
           "data": { "type": "array", "items": { "$ref": "#/components/schemas/Sensor" } }
+        }
+      },
+      "CreateReadingRequest": {
+        "type": "object",
+        "required": ["sensor", "value"],
+        "properties": {
+          "sensor": {
+            "type": "string",
+            "description": "Id of the sensor that took the measurement",
+            "example": "6716a2f4c1d2e3f4a5b6c7d8"
+          },
+          "value": { "type": "number", "example": 41 },
+          "unit": { "type": "string", "description": "Optional; must match the sensor unit", "example": "°C" },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Optional ISO 8601 date (defaults to now; cannot be in the future)",
+            "example": "2026-10-22T10:30:00Z"
+          }
+        }
+      },
+      "Reading": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "6716c3b2c1d2e3f4a5b6c7e0" },
+          "sensor": { "type": "string", "description": "Id of the sensor", "example": "6716a2f4c1d2e3f4a5b6c7d8" },
+          "value": { "type": "number", "example": 41 },
+          "unit": { "type": "string", "enum": ["%", "°C", "lx"], "example": "°C" },
+          "timestamp": { "type": "string", "format": "date-time", "description": "When the value was measured" },
+          "isAnomalous": {
+            "type": "boolean",
+            "example": true,
+            "description": "Computed by the server: true if the value is outside the sensor range"
+          },
+          "createdAt": { "type": "string", "format": "date-time", "description": "When the reading was saved" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ReadingWithSensor": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "6716c3b2c1d2e3f4a5b6c7e0" },
+          "sensor": {
+            "type": "object",
+            "description": "The sensor, populated",
+            "properties": {
+              "_id": { "type": "string", "example": "6716a2f4c1d2e3f4a5b6c7d8" },
+              "name": { "type": "string", "example": "Bed thermometer" },
+              "magnitude": { "$ref": "#/components/schemas/Magnitude" },
+              "location": { "type": "string", "example": "Bed 1" },
+              "unit": { "type": "string", "example": "°C" }
+            }
+          },
+          "value": { "type": "number", "example": 41 },
+          "unit": { "type": "string", "enum": ["%", "°C", "lx"], "example": "°C" },
+          "timestamp": { "type": "string", "format": "date-time", "description": "When the value was measured" },
+          "isAnomalous": {
+            "type": "boolean",
+            "example": true,
+            "description": "Computed by the server: true if the value is outside the sensor range"
+          },
+          "createdAt": { "type": "string", "format": "date-time", "description": "When the reading was saved" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ReadingResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "data": { "$ref": "#/components/schemas/Reading" }
+        }
+      },
+      "ReadingDetailResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "data": { "$ref": "#/components/schemas/ReadingWithSensor" }
         }
       },
       "ErrorResponse": {
