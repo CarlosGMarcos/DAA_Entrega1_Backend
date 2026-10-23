@@ -17,3 +17,18 @@ export const validateBody = (schema: ZodSchema) => {
     }
   };
 };
+
+// Same idea for the query string. In Express 5 req.query is a read-only
+// getter: "req.query = schema.parse(req.query)" is silently ignored, so the
+// parsed values are attached with Object.defineProperty (as in example 09).
+export const validateQuery = (schema: ZodSchema) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      const parsed = schema.parse(req.query);
+      Object.defineProperty(req, "query", { value: parsed, writable: true, enumerable: true, configurable: true });
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
