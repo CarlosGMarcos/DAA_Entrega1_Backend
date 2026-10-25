@@ -1,7 +1,7 @@
 /* ============================================================================
  * Sensors service
- * Business logic for sensors, independent of Express. Controllers call these
- * methods and turn the result (or the thrown error) into an HTTP response.
+ * Business logic for sensors. It does not depend on Express: controllers turn
+ * its results and errors into HTTP responses.
  * ========================================================================== */
 
 import { Sensor } from "../models/sensor.model.js";
@@ -27,8 +27,8 @@ export class SensorsService {
   }
 
   // Load, change and save (instead of findByIdAndUpdate) so the model's
-  // pre("validate") hook runs: unit is re-derived and the range re-checked
-  // against the values already stored.
+  // pre("validate") hook runs: the unit is set again and the range
+  // is checked against the values already stored.
   async update(id: string, input: UpdateSensorInput) {
     const sensor = await this.getById(id);
     sensor.set(input);
@@ -37,7 +37,7 @@ export class SensorsService {
 
   async remove(id: string) {
     const sensor = await this.getById(id);
-    // Readings point to their sensor: deleting it would leave them orphaned.
+    // Readings reference their sensor: deleting it would leave them pointing to a sensor that no longer exists.
     if (await Reading.exists({ sensor: sensor._id })) {
       throw new ConflictError(`Sensor ${id} has readings and cannot be deleted; deactivate it instead`);
     }

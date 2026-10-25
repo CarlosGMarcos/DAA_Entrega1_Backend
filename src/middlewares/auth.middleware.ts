@@ -1,9 +1,7 @@
 /* ============================================================================
  * Authentication and role middlewares
- * authenticate answers "who are you?" (valid token, else 401).
- * authorize answers "may you do this?" (allowed role, else 403).
- * Neither responds itself: errors go to next() and the global error handler
- * builds the response.
+ * authenticate checks the token (401 if missing or invalid). authorize checks
+ * the role (403 if not allowed). Errors go to the global error handler.
  * ========================================================================== */
 
 import { Request, Response, NextFunction } from "express";
@@ -11,7 +9,7 @@ import { tokenService } from "../services/token.service.js";
 import type { AuthTokenPayload, UserRole } from "../types/user.types.js";
 import { UnauthorizedError, InvalidTokenError, ForbiddenError } from "../errors/auth.errors.js";
 
-// After authenticate runs, any handler can read req.user with full types.
+// Makes req.user available, with its type, to every handler that runs after authenticate.
 declare global {
   namespace Express {
     interface Request {

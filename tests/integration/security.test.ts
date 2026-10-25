@@ -1,9 +1,7 @@
 /* ============================================================================
- * Integration tests: security layer
- * Helmet headers, CORS (only the allowed origin) and the login rate limit
- * (429 after 5 failed attempts). Kept in its own file on purpose: Vitest runs
- * each file in isolation, so the limiter starts with a clean count here and
- * the failed logins of other test files never add up.
+ * Integration tests: security
+ * Helmet headers, CORS and the login rate limit. In its own file because each
+ * test file runs separately, so the failed logins of other files do not count.
  * ========================================================================== */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
@@ -90,7 +88,7 @@ describe("Login rate limit", () => {
       message: "Too many failed login attempts. Try again in 15 minutes.",
     });
 
-    // The IP is blocked: guessing the password now is useless.
+    // The IP is blocked: even the right password is rejected now.
     const rightPassword = await login(password);
     expect(rightPassword.status).toBe(429);
   });

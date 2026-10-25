@@ -1,7 +1,6 @@
 /* ============================================================================
- * Integration tests: application foundations
- * Checks the behaviour every other feature relies on: the app answers, and
- * errors always come back in the shared response format.
+ * Integration tests: application basics
+ * Health check, unknown routes and the shared error format.
  * ========================================================================== */
 
 import { describe, it, expect } from "vitest";
@@ -33,10 +32,7 @@ describe("Unknown routes", () => {
 
 describe("Malformed JSON body", () => {
   it("is rejected with 400 instead of a 500", async () => {
-    const res = await request(app)
-      .post("/api/health")
-      .set("Content-Type", "application/json")
-      .send('{"name": "broken json"');
+    const res = await request(app).post("/api/health").set("Content-Type", "application/json").send('{"name": "broken json"');
 
     expect(res.status).toBe(400);
     expect(res.body.status).toBe("fail");

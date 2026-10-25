@@ -1,7 +1,6 @@
 /* ============================================================================
  * Integration tests: sensors
- * Full lifecycle of a sensor (create, read, update, delete), the validation
- * rules that protect it and who may do what, against an in-memory MongoDB.
+ * Full lifecycle of a sensor, its validation rules and role checks.
  * ========================================================================== */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
@@ -91,7 +90,10 @@ describe("Sensor validation", () => {
   it("rejects thresholds out of order on a partial update (checked by the model)", async () => {
     const created = await request(app).post("/api/sensors").set(bearer(adminToken)).send(validSensor);
 
-    const res = await request(app).patch(`/api/sensors/${created.body.data._id}`).set(bearer(adminToken)).send({ minThreshold: 90 });
+    const res = await request(app)
+      .patch(`/api/sensors/${created.body.data._id}`)
+      .set(bearer(adminToken))
+      .send({ minThreshold: 90 });
 
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("ValidationError");

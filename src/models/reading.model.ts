@@ -1,7 +1,6 @@
 /* ============================================================================
- * Reading model (Mongoose)
- * How a reading is stored in the "readings" collection. Readings are an
- * immutable history: they are only created and read, never updated.
+ * Reading model
+ * Readings are a history: they are created and read, never modified.
  * ========================================================================== */
 
 import { Schema, model } from "mongoose";
@@ -18,7 +17,7 @@ const readingSchema = new Schema<IReading>(
   },
   { timestamps: true, versionKey: false },
 );
-// createdAt stores when it was saved to the database, and
+// createdAt stores when it was saved to the database
 // timestamp stores when it was measured.
 
 // Speeds up the most common query: the latest readings of one sensor.

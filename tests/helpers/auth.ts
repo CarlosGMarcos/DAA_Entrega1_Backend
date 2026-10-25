@@ -1,8 +1,7 @@
 /* ============================================================================
- * Auth helpers for integration tests
- * Registration can never create an admin, so tests create users with the
- * role they need straight in the database and sign a token for them with
- * the same tokenService the API uses.
+ * Auth helpers for tests
+ * Create users with the required role directly in the database (registration
+ * never creates admins) and sign a token for them.
  * ========================================================================== */
 
 import bcrypt from "bcrypt";

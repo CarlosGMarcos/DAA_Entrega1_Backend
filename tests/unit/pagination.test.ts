@@ -1,7 +1,6 @@
 /* ============================================================================
  * Unit tests: pagination helpers
- * buildPaginationMeta and buildPaginationLinks are pure functions, so the
- * page arithmetic and the links are tested without database or HTTP.
+ * Page calculations and links, without database or HTTP.
  * ========================================================================== */
 
 import { describe, it, expect } from "vitest";

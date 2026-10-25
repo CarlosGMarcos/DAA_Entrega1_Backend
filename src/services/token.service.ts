@@ -1,8 +1,7 @@
 /* ============================================================================
  * Token service (JWT)
- * Signs access tokens with JWT_SECRET and verifies them. A JWT is
- * header.payload.signature: changing the payload (e.g. the role) breaks the
- * signature, so verify() rejects it.
+ * Signs and verifies tokens with JWT_SECRET. If the content of a token is
+ * modified, its signature no longer matches and verification fails.
  * ========================================================================== */
 
 import jwt, { type SignOptions } from "jsonwebtoken";
