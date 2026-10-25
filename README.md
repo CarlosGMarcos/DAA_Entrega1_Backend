@@ -65,7 +65,7 @@ Copy-Item .env.example .env
 
 Open `.env` and set at least:
 
-- `MONGODB_URI`: your MongoDB connection string. The last part of the URI is the database name.
+- `MONGODB_URI`: your MongoDB connection string. The last part of the URI is the database name. The default value (`mongodb://127.0.0.1:27017/garden_monitoring`) only works if MongoDB is running on your machine; otherwise use a MongoDB Atlas connection string (`mongodb+srv://<user>:<password>@<cluster>/garden_monitoring`). If the server prints `ECONNREFUSED`, no MongoDB is reachable at that URI.
 - `JWT_SECRET`: any long random string (16 characters or more).
 - `ADMIN_EMAIL` and `ADMIN_PASSWORD`: the credentials of the first administrator (see step 4).
 
@@ -133,7 +133,13 @@ The easiest way is the interactive documentation: open **http://localhost:3000/a
 2. Press **Authorize** (top right), paste the token and confirm. Every request from now on carries it.
 3. **Create a sensor:** `POST /sensors`, for example:
    ```json
-   { "name": "Tomato bed thermometer", "magnitude": "temperature", "location": "Greenhouse", "minThreshold": 5, "maxThreshold": 35 }
+   {
+     "name": "Tomato bed thermometer",
+     "magnitude": "temperature",
+     "location": "Greenhouse",
+     "minThreshold": 5,
+     "maxThreshold": 35
+   }
    ```
    Copy the `_id` of the new sensor.
 4. **Sign up a regular user** with `POST /auth/register` and log in with it, then authorize with its token.
@@ -315,9 +321,16 @@ Every response has the same shape.
 ```json
 {
   "status": "success",
-  "data": [{ "_id": "...", "sensor": { "name": "Tomato bed thermometer", "magnitude": "temperature" }, "value": 38, "isAnomalous": true }],
+  "data": [
+    { "_id": "...", "sensor": { "name": "Tomato bed thermometer", "magnitude": "temperature" }, "value": 38, "isAnomalous": true }
+  ],
   "meta": { "total": 3, "page": 1, "limit": 2, "totalPages": 2, "hasNextPage": true, "hasPrevPage": false },
-  "links": { "first": "/api/readings?...&page=1", "prev": null, "next": "/api/readings?...&page=2", "last": "/api/readings?...&page=2" }
+  "links": {
+    "first": "/api/readings?...&page=1",
+    "prev": null,
+    "next": "/api/readings?...&page=2",
+    "last": "/api/readings?...&page=2"
+  }
 }
 ```
 
