@@ -1,12 +1,8 @@
 /* ============================================================================
- * Centralized error handling
- * Every error ends up here: thrown in a route, passed to next(err), or
- * rejected by an async handler (Express 5 forwards rejected promises on its
- * own). This is the only place that decides how an error looks to the client,
- * so all error responses share the same shape:
+ * Error handling
+ * Every error ends here and is returned in the same format:
  *   { status: "fail" | "error", error, message, details? }
- * "fail" means the client sent something wrong (4xx); "error" means the
- * server failed (5xx).
+ * "fail" is a client error (4xx) and "error" a server error (5xx).
  * ========================================================================== */
 
 import { Request, Response, NextFunction } from "express";
@@ -63,7 +59,7 @@ export const globalErrorHandler = (err: Error, _req: Request, res: Response, _ne
   }
 
   // 2. Malformed JSON body: express.json() throws a SyntaxError. It is a client
-  //    mistake, so it must not fall through to the generic 500 below.
+  //    mistake, so it must not end in the generic 500 below.
   if (err instanceof SyntaxError && (err as SyntaxError & { type?: string }).type === "entity.parse.failed") {
     return res.status(400).json({
       status: "fail",
@@ -81,7 +77,7 @@ export const globalErrorHandler = (err: Error, _req: Request, res: Response, _ne
     });
   }
 
-  // 4. Anything else is a bug: log it and hide the details from the client.
+  // 4. Any other error is unexpected: it is logged and the client gets a generic message.
   console.error("Unhandled error:", err);
 
   return res.status(500).json({

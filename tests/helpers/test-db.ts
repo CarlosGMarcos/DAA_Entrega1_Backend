@@ -1,7 +1,7 @@
 /* ============================================================================
- * In-memory MongoDB for integration tests
- * Each test file that needs a database starts its own throwaway MongoDB, so
- * tests never touch Atlas or the developer's data and always start clean.
+ * In-memory MongoDB for tests
+ * Each test file uses its own temporary database, so tests never touch real
+ * data and always start clean.
  * ========================================================================== */
 
 import mongoose from "mongoose";
@@ -15,7 +15,6 @@ export const startTestDB = async (): Promise<void> => {
   await connectDB(mongoServer.getUri());
 };
 
-// Empties every collection so each test starts from a known state.
 export const clearTestDB = async (): Promise<void> => {
   const collections = Object.values(mongoose.connection.collections);
   await Promise.all(collections.map((collection) => collection.deleteMany({})));

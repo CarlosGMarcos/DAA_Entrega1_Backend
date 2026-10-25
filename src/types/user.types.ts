@@ -1,7 +1,6 @@
 /* ============================================================================
  * User types
- * Single list of roles (used by the model, the JWT and the role middleware)
- * and the shape of the data carried inside an access token.
+ * Roles and the data stored inside a token.
  * ========================================================================== */
 
 export const USER_ROLES = ["user", "admin"] as const;

@@ -1,8 +1,7 @@
 /* ============================================================================
  * Integration tests: readings
- * Registering readings through the API: the server decides isAnomalous, and
- * the sensor rules (exists, active, same unit) are enforced. Also covers the
- * sensor <-> readings relation (populate, no delete while readings exist).
+ * Registering readings (anomaly rule, sensor and unit checks) and the relation
+ * between readings and sensors.
  * ========================================================================== */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";

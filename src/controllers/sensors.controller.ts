@@ -1,9 +1,8 @@
 /* ============================================================================
  * Sensors controller
- * Reads what it needs from the request, delegates to the service and wraps
- * the result in the success envelope. No try/catch: Express 5 forwards any
- * thrown error (e.g. NotFoundError) to the global error handler.
- * --> It shortens the controller code and delegates the error handling.
+ * Passes the request to the sensors service and returns the result. There is
+ * no try/catch: Express 5 sends any thrown error to the global error handler,
+ * which keeps the controllers short.
  * ========================================================================== */
 
 import { Request, Response } from "express";
@@ -33,7 +32,3 @@ export const deleteSensor = async (req: Request<{ id: string }>, res: Response) 
   await sensorsService.remove(req.params.id);
   res.status(204).send();
 };
-
-// req.body is already validated by the Zod schema in the route, so we can safely pass it to the service.
-// The service will throw a NotFoundError if the sensor does not exist,
-// which will be caught by the global error handler and returned as a 404 response.

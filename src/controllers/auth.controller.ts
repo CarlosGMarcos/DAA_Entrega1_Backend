@@ -1,7 +1,6 @@
 /* ============================================================================
  * Auth controller
- * Hands the validated body to the auth service and wraps { token, user } in
- * the success envelope. Errors (409, 401) reach the global error handler.
+ * Passes the validated body to the auth service and returns { token, user }.
  * ========================================================================== */
 
 import { Request, Response } from "express";

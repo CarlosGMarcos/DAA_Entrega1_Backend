@@ -1,7 +1,7 @@
 /* ============================================================================
  * Sensor types
- * Single source of truth for magnitudes and their units. The model, the Zod
- * schemas and the services all import from here, so they can never disagree.
+ * Magnitudes and their units are defined only here; the model, the schemas
+ * and the services import them, so they always match.
  * ========================================================================== */
 
 export const MAGNITUDES = ["soil_humidity", "temperature", "light"] as const;

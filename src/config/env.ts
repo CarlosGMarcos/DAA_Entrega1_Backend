@@ -1,9 +1,7 @@
 /* ============================================================================
  * Environment configuration
- * Reads .env once, validates every variable with Zod and exposes a typed
- * `env` object. If something is missing or invalid the process stops right
- * away with a clear message, instead of failing later in an unrelated place
- * (e.g. signing a token with an undefined secret).
+ * Validates the variables of .env with Zod. If one is missing or invalid, the
+ * process stops at startup with a clear message.
  * ========================================================================== */
 
 import { config } from "dotenv";

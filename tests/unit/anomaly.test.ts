@@ -1,7 +1,6 @@
 /* ============================================================================
  * Unit tests: anomaly rule
- * isOutOfRange is a pure function (no database, no HTTP), so it can be
- * tested on its own with many cases, including the edges of the range.
+ * isOutOfRange tested on its own, including the limits of the range.
  * ========================================================================== */
 
 import { describe, it, expect } from "vitest";

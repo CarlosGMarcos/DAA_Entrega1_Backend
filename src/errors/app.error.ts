@@ -1,9 +1,7 @@
 /* ============================================================================
- * Base class for operational errors
- * Operational errors are expected situations (invalid data, missing resource,
- * missing permissions) and carry their own HTTP status code. Anything that is
- * not an AppError is treated as an unexpected bug and answered with a 500.
- * Subclasses set `name`, which the error handler returns in the `error` field.
+ * Base application error
+ * Expected errors (invalid data, missing resource, missing permissions) carry
+ * their own HTTP status. Any other error is answered with a 500.
  * ========================================================================== */
 
 export class AppError extends Error {

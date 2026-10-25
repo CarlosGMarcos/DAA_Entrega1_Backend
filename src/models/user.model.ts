@@ -1,7 +1,7 @@
 /* ============================================================================
- * User model (Mongoose)
- * How a user is stored in the "users" collection. The password hash is
- * protected twice: it is not loaded by default and never serialized to JSON.
+ * User model
+ * The password hash is not loaded by default and is never included in a
+ * response.
  * ========================================================================== */
 
 import { Schema, model } from "mongoose";
@@ -24,7 +24,7 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
     versionKey: false,
     toJSON: {
-      // Strip the hash whenever a user is sent in a response.
+      // Remove the hash every time a user is sent in a response.
       transform: (_doc, ret) => {
         const { passwordHash: _passwordHash, ...publicUser } = ret;
         return publicUser;

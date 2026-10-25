@@ -1,7 +1,5 @@
 /* ============================================================================
  * Reading types
- * A reading points to its sensor by id (no sensor data is copied) and keeps
- * the unit and the anomaly flag as they were at the moment it was saved.
  * ========================================================================== */
 
 import type { Types } from "mongoose";

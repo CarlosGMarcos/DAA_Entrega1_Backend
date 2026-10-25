@@ -1,7 +1,7 @@
 /* ============================================================================
- * Reading routes, mounted at /api/readings
- * Any authenticated user (user or admin) may register and read readings.
- * Readings are an immutable history: there is no PATCH or DELETE.
+ * Reading routes (/api/readings)
+ * Open to any authenticated user. There is no PATCH or DELETE: readings
+ * cannot be modified.
  * ========================================================================== */
 
 import { Router } from "express";

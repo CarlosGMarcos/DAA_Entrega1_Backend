@@ -1,7 +1,6 @@
 /* ============================================================================
  * Readings controller
- * Hands the validated request to the readings service and wraps the result
- * in the success envelope. Errors (404, 409, 400) reach the error handler.
+ * Passes the validated request to the readings service and returns the result.
  * ========================================================================== */
 
 import { Request, Response } from "express";
