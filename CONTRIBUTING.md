@@ -3,8 +3,8 @@
 This guide explains how to work in this repository.
 
 > **Quick reference:** for day-to-day work (exact commands, resolving conflicts,
-> what to do when something goes wrong) see [`docs/git-cheatsheet.md`](docs/git-cheatsheet.md).
-> This guide is the *what* and the *why*; the cheatsheet is the *how*.
+> what to do when something goes wrong) see [`.github/docs/git-cheatsheet.md`](.github/docs/git-cheatsheet.md).
+> This guide is the _what_ and the _why_; the cheatsheet is the _how_.
 
 > [!IMPORTANT]
 > **No AI attribution in this repository.** Claude, Claude Code and any other AI
@@ -53,10 +53,10 @@ docs/<description>   ← documentation changes
 The `main` and `develop` rulesets allow **both squash and merge commit**, so GitHub
 will offer both buttons. Which one to use is not optional; it depends on the PR:
 
-| PR | Method | GitHub button |
-|----|--------|---------------|
-| `feat/*`, `fix/*`, `chore/*`, `docs/*` → `develop` | **Squash** | "Squash and merge" |
-| `develop` → `main` (release) | **Merge commit** | "Create a merge commit" |
+| PR                                                 | Method           | GitHub button           |
+| -------------------------------------------------- | ---------------- | ----------------------- |
+| `feat/*`, `fix/*`, `chore/*`, `docs/*` → `develop` | **Squash**       | "Squash and merge"      |
+| `develop` → `main` (release)                       | **Merge commit** | "Create a merge commit" |
 
 **Why releases use a merge commit instead of squash:** `develop` and `main` are both
 long-lived branches. Squashing `develop → main` does not merge the branches; it creates
@@ -71,7 +71,7 @@ and deleted after the merge, so collapsing it into one commit splits no history 
 keeps `develop` readable (one commit per feature).
 
 The exact commands for each case are in
-[`docs/git-cheatsheet.md`](docs/git-cheatsheet.md).
+[`.github/docs/git-cheatsheet.md`](.github/docs/git-cheatsheet.md).
 
 ---
 
@@ -137,19 +137,19 @@ commit in a pull request, and the check is required to merge.
 
 ### Types
 
-| Type | When to use it | Example |
-|------|----------------|---------|
-| `feat` | New user-facing functionality | `feat: add sign-in with Google` |
-| `fix` | Bug fix | `fix: handle empty input in validation` |
-| `chore` | Maintenance, dependencies, configuration | `chore: update dependencies` |
-| `docs` | Documentation only | `docs: document the payments API` |
-| `refactor` | Refactor with no behavior change | `refactor: simplify date helpers` |
-| `test` | Add or update tests | `test: add tests for authentication` |
-| `style` | Formatting, whitespace (no logic change) | `style: apply formatter` |
-| `perf` | Performance improvement | `perf: cache expensive queries` |
-| `build` | Build system or build dependencies | `build: add bundle analyzer` |
-| `ci` | CI/CD changes | `ci: add test job` |
-| `revert` | Revert a previous commit | `revert: undo "feat: add X"` |
+| Type       | When to use it                           | Example                                 |
+| ---------- | ---------------------------------------- | --------------------------------------- |
+| `feat`     | New user-facing functionality            | `feat: add sign-in with Google`         |
+| `fix`      | Bug fix                                  | `fix: handle empty input in validation` |
+| `chore`    | Maintenance, dependencies, configuration | `chore: update dependencies`            |
+| `docs`     | Documentation only                       | `docs: document the payments API`       |
+| `refactor` | Refactor with no behavior change         | `refactor: simplify date helpers`       |
+| `test`     | Add or update tests                      | `test: add tests for authentication`    |
+| `style`    | Formatting, whitespace (no logic change) | `style: apply formatter`                |
+| `perf`     | Performance improvement                  | `perf: cache expensive queries`         |
+| `build`    | Build system or build dependencies       | `build: add bundle analyzer`            |
+| `ci`       | CI/CD changes                            | `ci: add test job`                      |
+| `revert`   | Revert a previous commit                 | `revert: undo "feat: add X"`            |
 
 ### Rules
 
@@ -184,13 +184,13 @@ commit in a pull request, and the check is required to merge.
 
 What the branch rulesets enforce:
 
-| | `develop` | `main` |
-|---|---|---|
-| Changes only through a pull request | yes | yes |
-| Required check: `Commit messages` | yes | yes |
-| Required approvals | 0 | 0 |
-| All review conversations resolved | no | yes |
-| Force push and branch deletion | blocked | blocked |
+|                                     | `develop` | `main`  |
+| ----------------------------------- | --------- | ------- |
+| Changes only through a pull request | yes       | yes     |
+| Required check: `Commit messages`   | yes       | yes     |
+| Required approvals                  | 0         | 0       |
+| All review conversations resolved   | no        | yes     |
+| Force push and branch deletion      | blocked   | blocked |
 
 Approvals default to 0 so a solo maintainer can merge their own pull requests. For a
 team, raise `required_approving_review_count` in the rulesets to 1 or more.
