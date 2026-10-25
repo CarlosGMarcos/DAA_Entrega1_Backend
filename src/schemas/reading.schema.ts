@@ -1,10 +1,5 @@
-/* ============================================================================
- * Reading request schema (Zod)
- * What a client may send to register a reading. isAnomalous is not here: the
- * server always decides it, so a value sent by the client is stripped.
- * ========================================================================== */
-
 import { z } from "zod";
+import { MAGNITUDES } from "../types/sensor.types.js";
 
 const OBJECT_ID_REGEX = /^[a-f\d]{24}$/i;
 
@@ -23,3 +18,47 @@ export const createReadingSchema = z.object({
 });
 
 export type CreateReadingInput = z.infer<typeof createReadingSchema>;
+
+// ---------------------------------------------------------------------------
+// Query string of GET /api/readings (history list)
+// Everything in the URL arrives as a string ("?limit=20" -> "20"), so numbers
+// are coerced and booleans are compared by hand.
+// ---------------------------------------------------------------------------
+
+// Whitelist of sort fields: anything else is a 400, never a raw MongoDB sort.
+export const READING_SORT_FIELDS = ["timestamp", "value"];
+
+const queryDate = (field: string) =>
+  z
+    .string()
+    .datetime({ offset: true, message: `${field} must be an ISO 8601 date, e.g. 2026-10-22T10:30:00Z` })
+    .transform((value) => new Date(value));
+
+export const listReadingsQuerySchema = z
+  .object({
+    page: z.coerce.number().int("page must be an integer").min(1, "page must be 1 or more").default(1),
+    limit: z.coerce.number().int("limit must be an integer").min(1, "limit must be 1 or more").max(100, "limit cannot be more than 100").default(20),
+    sensor: z.string().regex(OBJECT_ID_REGEX, "sensor must be a valid id (24 hexadecimal characters)").optional(),
+    magnitude: z.enum(MAGNITUDES).optional(),
+    // z.coerce.boolean() would turn "false" into true (any non-empty string is
+    // truthy), so only the exact words "true" and "false" are accepted.
+    isAnomalous: z
+      .enum(["true", "false"], { message: "isAnomalous must be true or false" })
+      .transform((value) => value === "true")
+      .optional(),
+    from: queryDate("from").optional(),
+    to: queryDate("to").optional(),
+    sort: z
+      .string()
+      .trim()
+      .default("-timestamp")
+      .refine((sort) => READING_SORT_FIELDS.includes(sort.replace(/^-/, "")), {
+        message: `sort must be one of: ${READING_SORT_FIELDS.join(", ")} (add "-" in front for descending order)`,
+      }),
+  })
+  .refine((query) => query.from === undefined || query.to === undefined || query.from <= query.to, {
+    message: "from cannot be later than to",
+    path: ["from"],
+  });
+
+export type ListReadingsQuery = z.infer<typeof listReadingsQuerySchema>;

@@ -155,6 +155,64 @@
       }
     },
     "/readings": {
+      "get": {
+        "tags": ["Readings"],
+        "summary": "List the readings history (Any authenticated user)",
+        "description": "Any authenticated user. Paginated, filterable and sortable history of readings. Every filter sent adds one condition and they combine with AND (for example `?sensor=<id>&isAnomalous=true&sort=-value&limit=10`). Each reading comes with its sensor populated. `magnitude` filters by the magnitude of the sensor (the reading does not store it). The `links` keep every filter of the request, so following `next` returns the next page of the same query. Readings with the same sort value are ordered by id, so pages never repeat or skip a reading.",
+        "parameters": [
+          { "name": "page", "in": "query", "description": "Page number", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Readings per page",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "sensor",
+            "in": "query",
+            "description": "Only readings of this sensor (MongoDB id, 24 hexadecimal characters)",
+            "schema": { "type": "string", "example": "6716a2f4c1d2e3f4a5b6c7d8" }
+          },
+          {
+            "name": "magnitude",
+            "in": "query",
+            "description": "Only readings of sensors that measure this magnitude",
+            "schema": { "$ref": "#/components/schemas/Magnitude" }
+          },
+          {
+            "name": "isAnomalous",
+            "in": "query",
+            "description": "true: only anomalous readings; false: only normal ones",
+            "schema": { "type": "boolean" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Only readings taken at or after this date (ISO 8601)",
+            "schema": { "type": "string", "format": "date-time", "example": "2026-10-20T00:00:00Z" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Only readings taken at or before this date (ISO 8601). Cannot be earlier than `from`",
+            "schema": { "type": "string", "format": "date-time", "example": "2026-10-24T23:59:59Z" }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort field; a leading `-` means descending",
+            "schema": { "type": "string", "enum": ["-timestamp", "timestamp", "-value", "value"], "default": "-timestamp" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of readings",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReadingListResponse" } } }
+          },
+          "400": { "$ref": "#/components/responses/ReadingQueryBadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
       "post": {
         "tags": ["Readings"],
         "summary": "Register a reading (Any authenticated user)",
@@ -322,6 +380,23 @@
                   "message": "Unit '°F' does not match the sensor unit '°C'"
                 }
               }
+            }
+          }
+        }
+      },
+      "ReadingQueryBadRequest": {
+        "description": "The query string is not valid (limit out of 1-100, sort not allowed, isAnomalous not true/false, from later than to, invalid sensor id...)",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "status": "fail",
+              "error": "ValidationError",
+              "message": "The request data is not valid.",
+              "details": [
+                { "field": "isAnomalous", "message": "isAnomalous must be true or false" },
+                { "field": "sort", "message": "sort must be one of: timestamp, value (add \"-\" in front for descending order)" }
+              ]
             }
           }
         }
@@ -549,6 +624,46 @@
         "properties": {
           "status": { "type": "string", "example": "success" },
           "data": { "$ref": "#/components/schemas/ReadingWithSensor" }
+        }
+      },
+      "ReadingListResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/ReadingWithSensor" } },
+          "meta": { "$ref": "#/components/schemas/PaginationMeta" },
+          "links": { "$ref": "#/components/schemas/PaginationLinks" }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer", "description": "Readings that match the filters", "example": 3 },
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 2 },
+          "totalPages": { "type": "integer", "example": 2 },
+          "hasNextPage": { "type": "boolean", "example": true },
+          "hasPrevPage": { "type": "boolean", "example": false }
+        }
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "description": "Ready-to-follow URLs that keep every filter of the request",
+        "properties": {
+          "first": {
+            "type": "string",
+            "example": "/api/readings?sensor=6716a2f4c1d2e3f4a5b6c7d8&isAnomalous=true&sort=-value&limit=2&page=1"
+          },
+          "prev": { "type": "string", "nullable": true, "example": null },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "example": "/api/readings?sensor=6716a2f4c1d2e3f4a5b6c7d8&isAnomalous=true&sort=-value&limit=2&page=2"
+          },
+          "last": {
+            "type": "string",
+            "example": "/api/readings?sensor=6716a2f4c1d2e3f4a5b6c7d8&isAnomalous=true&sort=-value&limit=2&page=2"
+          }
         }
       },
       "ErrorResponse": {
