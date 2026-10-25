@@ -3,7 +3,7 @@
   "info": {
     "title": "Garden Monitoring API",
     "version": "1.0.0",
-    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error.\n\n**Authentication:** call `POST /auth/login` (or `/auth/register`) to get a JWT, press **Authorize** and paste it. Every sensor route needs it; creating, updating and deleting sensors also needs the `admin` role. Readings can be registered and read by any authenticated user."
+    "description": "REST API to monitor a garden: sensors, the readings they produce and the users that manage them.\n\nAll responses share the same envelope: `{ status: \"success\", data }` on success and `{ status: \"fail\" | \"error\", error, message, details? }` on error.\n\n**Authentication:** call `POST /auth/login` (or `/auth/register`) to get a JWT, press **Authorize** and paste it. Every sensor route needs it; creating, updating and deleting sensors also needs the `admin` role. Readings can be registered and read by any authenticated user.\n\n**Security:** every response carries security headers (Helmet), browsers may only call the API from the origins configured in `CORS_ORIGIN`, and `POST /auth/login` allows 5 failed attempts per IP every 15 minutes before answering `429`."
   },
   "servers": [{ "url": "/api", "description": "Current server" }],
   "security": [{ "bearerAuth": [] }],
@@ -57,7 +57,7 @@
       "post": {
         "tags": ["Auth"],
         "summary": "Log in and get a token (Public)",
-        "description": "The same 401 is returned whether the email does not exist or the password is wrong, so the API never reveals which emails are registered.",
+        "description": "The same 401 is returned whether the email does not exist or the password is wrong, so the API never reveals which emails are registered. Protected against brute force: after 5 failed attempts from the same IP in 15 minutes, every login from that IP (even with the right password) answers 429 until the window ends. Successful logins do not count. The `RateLimit-*` response headers show how many attempts are left.",
         "security": [],
         "requestBody": {
           "required": true,
@@ -69,7 +69,8 @@
             "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } }
           },
           "400": { "$ref": "#/components/responses/ValidationError" },
-          "401": { "$ref": "#/components/responses/InvalidCredentials" }
+          "401": { "$ref": "#/components/responses/InvalidCredentials" },
+          "429": { "$ref": "#/components/responses/TooManyLoginAttempts" }
         }
       }
     },
@@ -341,6 +342,19 @@
           "application/json": {
             "schema": { "$ref": "#/components/schemas/ErrorResponse" },
             "example": { "status": "fail", "error": "InvalidCredentials", "message": "Invalid email or password" }
+          }
+        }
+      },
+      "TooManyLoginAttempts": {
+        "description": "Too many failed login attempts from this IP: wait until the 15-minute window ends",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "status": "fail",
+              "error": "TooManyRequests",
+              "message": "Too many failed login attempts. Try again in 15 minutes."
+            }
           }
         }
       },
