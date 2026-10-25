@@ -1,7 +1,6 @@
 /* ============================================================================
- * Pagination contracts
- * Shape of every paginated list: { data, meta, links }. Generic in T, so the
- * same types work for readings or for any other list added later.
+ * Pagination types
+ * Shape of every paginated list: { data, meta, links }.
  * ========================================================================== */
 
 export interface PaginationMeta {
@@ -13,7 +12,7 @@ export interface PaginationMeta {
   hasPrevPage: boolean;
 }
 
-// Ready-to-follow URLs that keep every other filter of the request.
+// Links to other pages that keep the filters of the request.
 export interface PaginationLinks {
   first: string;
   prev: string | null;

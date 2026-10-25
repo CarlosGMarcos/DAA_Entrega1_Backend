@@ -1,7 +1,7 @@
 /* ============================================================================
  * Readings service
- * Registers readings: checks the sensor (exists, active, same unit) and
- * decides isAnomalous from the sensor's thresholds at the moment of saving.
+ * Registers readings (checking the sensor and deciding isAnomalous) and lists
+ * the history with filters, sorting and pagination.
  * ========================================================================== */
 
 import { Reading } from "../models/reading.model.js";
@@ -43,8 +43,6 @@ export class ReadingsService {
     return reading;
   }
 
-  // History list. The query arrives already validated and converted by
-  // listReadingsQuerySchema; the original URL is only used to build the links.
   async list(query: ListReadingsQuery, originalUrl: string) {
     const filter = await this.buildFilter(query);
 
@@ -57,7 +55,7 @@ export class ReadingsService {
     const [data, total] = await Promise.all([
       Reading.find(filter)
         // _id breaks ties (two readings with the same value or timestamp), so
-        // the order is stable and no reading repeats or vanishes between pages.
+        // the order is always the same and no reading is repeated or skipped between pages.
         .sort({ [sortField]: direction, _id: direction })
         .skip(skip)
         .limit(query.limit)
@@ -95,7 +93,7 @@ export class ReadingsService {
       filter.sensor = sensorCondition;
     }
 
-    // false is a valid filter value, so compare with undefined, not truthiness.
+    // false is a valid filter value, so it is compared with undefined instead of using a plain if.
     if (query.isAnomalous !== undefined) {
       filter.isAnomalous = query.isAnomalous;
     }

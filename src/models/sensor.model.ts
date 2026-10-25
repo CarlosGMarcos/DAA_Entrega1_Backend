@@ -1,7 +1,7 @@
 /* ============================================================================
- * Sensor model (Mongoose)
- * How a sensor is stored in the "sensors" collection. The unit is filled in
- * from the magnitude and the threshold range is checked before every save.
+ * Sensor model
+ * The unit is set from the magnitude, and the thresholds are checked before
+ * every save.
  * ========================================================================== */
 
 import { Schema, model } from "mongoose";
@@ -20,7 +20,7 @@ const sensorSchema = new Schema<ISensor>(
   { timestamps: true, versionKey: false },
 );
 
-// Runs before validation on every save(): derive the unit and check the range.
+// Runs before every save(): sets the unit and checks the range.
 sensorSchema.pre("validate", function () {
   this.unit = MAGNITUDE_UNITS[this.magnitude];
 

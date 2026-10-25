@@ -1,7 +1,6 @@
 /* ============================================================================
- * Auth request schemas (Zod)
- * Register never accepts a role: it is not in the schema, so a "role" sent
- * by the client is stripped and every new account is a plain user.
+ * Auth request schemas
+ * Registration has no "role" field, so every new account is a regular user.
  * ========================================================================== */
 
 import { z } from "zod";

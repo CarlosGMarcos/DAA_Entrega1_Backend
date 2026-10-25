@@ -1,8 +1,7 @@
 /* ============================================================================
- * Sensor routes, mounted at /api/sensors
- * Every route needs a valid token. Reading is open to any role; creating,
- * updating and deleting are admin-only. Auth runs before validation, so an
- * unauthorized client never learns anything about the expected body.
+ * Sensor routes (/api/sensors)
+ * Every route needs a token. Reading is open to any role; creating, updating
+ * and deleting are admin only, and the role is checked before the body.
  * ========================================================================== */
 
 import { Router } from "express";
@@ -14,13 +13,12 @@ import { createSensorSchema, updateSensorSchema } from "../schemas/sensor.schema
 
 const router = Router();
 
-// Applies to every route below.
 router.use(authenticate);
 
 router.get("/", sensorsController.listSensors);
 router.get("/:id", validateObjectId(), sensorsController.getSensor);
 
-// To see if it works, erase authorize("admin") below and run the tests. They will fail with 403, but the code will still compile and run.
+// Without authorize("admin") a regular user would get 201 here, and the access-control tests (which expect 403) would fail.
 router.post("/", authorize("admin"), validateBody(createSensorSchema), sensorsController.createSensor);
 router.patch("/:id", authorize("admin"), validateObjectId(), validateBody(updateSensorSchema), sensorsController.updateSensor);
 router.delete("/:id", authorize("admin"), validateObjectId(), sensorsController.deleteSensor);

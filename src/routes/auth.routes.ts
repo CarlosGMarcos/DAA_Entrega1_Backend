@@ -1,6 +1,6 @@
 /* ============================================================================
- * Auth routes, mounted at /api/auth
- * Public on purpose: they are how a client gets a token in the first place.
+ * Auth routes (/api/auth)
+ * Public routes: they are the way to obtain a token.
  * ========================================================================== */
 
 import { Router } from "express";

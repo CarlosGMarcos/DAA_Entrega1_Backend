@@ -1,7 +1,7 @@
 /* ============================================================================
- * ObjectId validation middleware
- * Rejects ids that cannot be a MongoDB ObjectId (e.g. /sensors/abc) with a
- * clear 400, before Mongoose throws a CastError that would end up as a 500.
+ * Id validation middleware
+ * Answers 400 when an id is not a valid MongoDB id (e.g. /sensors/abc),
+ * instead of letting Mongoose fail with a 500.
  * ========================================================================== */
 
 import { Request, Response, NextFunction } from "express";

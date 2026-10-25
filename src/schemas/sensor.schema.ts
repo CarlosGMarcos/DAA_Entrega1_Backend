@@ -1,7 +1,7 @@
 /* ============================================================================
- * Sensor request schemas (Zod)
- * What a client may send to create or update a sensor. Unknown fields (e.g.
- * "unit" or "_id") are stripped, so the client can never set them.
+ * Sensor request schemas
+ * Fields the client may send to create or update a sensor. Any other field
+ * (e.g. "unit" or "_id") is discarded.
  * ========================================================================== */
 
 import { z } from "zod";

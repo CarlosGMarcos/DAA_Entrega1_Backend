@@ -1,8 +1,7 @@
 /* ============================================================================
  * Admin seed
- * Registration always creates plain users, so the first admin is created
- * here on startup from ADMIN_EMAIL / ADMIN_PASSWORD. Idempotent: running it
- * again (every restart) changes nothing once an admin exists.
+ * On startup, creates the first administrator from ADMIN_EMAIL /
+ * ADMIN_PASSWORD. If an admin already exists, it does nothing.
  * ========================================================================== */
 
 import bcrypt from "bcrypt";
@@ -21,7 +20,7 @@ export const seedAdmin = async (): Promise<void> => {
   }
 
   // Never promote an existing account: whoever registered with that email
-  // chose its password, so promoting it would hand them admin rights.
+  // chose its password, so promoting it would give them admin permissions
   if (await User.exists({ email: env.ADMIN_EMAIL })) {
     console.warn(`[seed] ${env.ADMIN_EMAIL} is already used by a regular account: admin not created.`);
     return;

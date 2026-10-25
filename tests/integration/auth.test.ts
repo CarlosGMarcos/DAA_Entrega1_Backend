@@ -1,7 +1,7 @@
 /* ============================================================================
  * Integration tests: authentication
- * Sign-up and login through the real endpoints, including the failure cases
- * (duplicate email, bad input, wrong credentials).
+ * Sign-up and login, including duplicate email, invalid data and wrong
+ * credentials.
  * ========================================================================== */
 
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";

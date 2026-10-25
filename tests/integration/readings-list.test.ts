@@ -1,7 +1,6 @@
 /* ============================================================================
- * Integration tests: readings history (GET /api/readings)
- * Pagination, filters and sorting against a known set of readings, so every
- * test knows exactly which readings must come back and in which order.
+ * Integration tests: reading history (GET /api/readings)
+ * Pagination, filters and sorting over a known set of readings.
  * ========================================================================== */
 
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
@@ -26,7 +25,8 @@ beforeEach(async () => {
   userToken = (await createUserWithToken("user")).token;
 
   // Creates a sensor as admin and returns its id.
-  const createSensor = async (body: object) => (await request(app).post("/api/sensors").set(bearer(adminToken)).send(body)).body.data._id;
+  const createSensor = async (body: object) =>
+    (await request(app).post("/api/sensors").set(bearer(adminToken)).send(body)).body.data._id;
   thermometerId = await createSensor({
     name: "Bed thermometer",
     magnitude: "temperature",

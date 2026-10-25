@@ -1,7 +1,7 @@
 /* ============================================================================
  * Pagination helpers
- * Pure functions (no database, no req/res): they only do the arithmetic and
- * build the links, so any list service can reuse them.
+ * Calculate the pagination data and links. They do not use the database, so
+ * any list can reuse them.
  * ========================================================================== */
 
 import { PaginationLinks, PaginationMeta } from "../types/pagination.types.js";
@@ -21,8 +21,7 @@ export const buildPaginationMeta = (total: number, page: number, limit: number):
   };
 };
 
-// The original URL is rebuilt with the native URL API (not by joining strings)
-// so filters such as ?sensor=...&isAnomalous=true are kept in every link.
+// The links are built from the original URL with the URL class, so filters such as ?sensor=...&isAnomalous=true are kept in every link.
 export const buildPaginationLinks = (originalUrl: string, page: number, limit: number, totalPages: number): PaginationLinks => {
   const url = new URL(originalUrl, "http://localhost");
 

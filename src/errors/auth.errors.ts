@@ -1,7 +1,7 @@
 /* ============================================================================
  * Authentication and authorization errors
- * 401 = "I don't know who you are" (missing, invalid or expired token, or
- * wrong credentials). 403 = "I know who you are, but you can't do this".
+ * 401: the user is not identified (no token, invalid token or wrong
+ * credentials). 403: the user is identified but lacks permission.
  * ========================================================================== */
 
 import { AppError } from "./app.error.js";

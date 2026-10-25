@@ -1,7 +1,7 @@
 /* ============================================================================
  * Auth service
- * Register hashes the password with bcrypt and always creates a plain user.
- * Login answers the same 401 whether the email or the password is wrong.
+ * Registers users with a bcrypt-hashed password and logs them in. Login gives
+ * the same 401 whether the email or the password is wrong.
  * ========================================================================== */
 
 import bcrypt from "bcrypt";
@@ -12,7 +12,7 @@ import { EmailAlreadyRegisteredError, InvalidCredentialsError } from "../errors/
 import type { RegisterInput, LoginInput } from "../schemas/auth.schema.js";
 import type { IUser } from "../types/user.types.js";
 
-// bcrypt cost factor: 2^10 rounds, slow on purpose against brute force.
+// bcrypt cost factor. Hashing is deliberately slow, which makes brute force attacks expensive.
 const SALT_ROUNDS = 10;
 
 export class AuthService {

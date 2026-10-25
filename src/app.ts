@@ -1,8 +1,7 @@
 /* ============================================================================
  * Express application
- * Builds and configures the app (middlewares, routes, error handling) but
- * does NOT start listening: server.ts does that. Keeping them apart lets the
- * tests import `app` and send requests to it without opening a real port.
+ * Configures middlewares, routes and error handling. It does not connect to
+ * the database or start listening: server.ts does both.
  * ========================================================================== */
 
 import express, { Request, Response } from "express";
@@ -18,10 +17,10 @@ import { env } from "./config/env.js";
 
 export const app = express();
 
-// Order matters (as in example 06): security headers first, then CORS, and
+// Order matters: security headers first, then CORS, and
 // only then the JSON body parser, so a rejected request never gets parsed.
 
-// 1. Security headers (and no "X-Powered-By: Express" telling attackers what we run).
+// 1. Security headers. Helmet also removes the "X-Powered-By: Express" header, which reveals the technology in use.
 app.use(helmet());
 
 // 2. CORS: only the origins listed in CORS_ORIGIN (the future frontend) may
@@ -56,10 +55,3 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 // Always last, in this order: unknown routes first, then every error.
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
-
-// implementing a Database connection does not change the app iself,
-// app doesn't need to know about the database, it just needs to be
-// able to handle requests and responses.
-// The database connection is handled in server.ts, which is responsible
-// for starting the server and connecting to the database before the
-// app starts listening for requests.
